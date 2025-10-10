@@ -1,102 +1,119 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
+      <header className="border-b border-white/10 bg-slate-950/80 backdrop-blur">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+              CRTE · Núcleo de Educação AMS
+            </p>
+            <h1 className="text-lg font-semibold">Central de Chamados</h1>
+          </div>
+          <SignedIn>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/solicitacao"
+                className="rounded-md border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20"
+              >
+                Área autenticada
+              </Link>
+              <UserButton appearance={{ variables: { colorPrimary: "#10b981" } }} />
+            </div>
+          </SignedIn>
+          <SignedOut>
+            <div className="flex items-center gap-3">
+              <SignInButton fallbackRedirectUrl="/solicitacao" mode="modal">
+                <button className="rounded-md border border-slate-600 px-4 py-2 text-sm font-semibold transition hover:border-emerald-400 hover:text-emerald-200">
+                  Entrar
+                </button>
+              </SignInButton>
+              <SignUpButton fallbackRedirectUrl="/solicitacao" mode="modal">
+                <button className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">
+                  Criar conta
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
         </div>
+      </header>
+
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-16">
+        <section className="rounded-xl border border-white/10 bg-slate-900 p-8 shadow-lg">
+          <h2 className="text-2xl font-semibold text-emerald-200">
+            Atendimento pedagógico e tecnológico sob controle
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-slate-300">
+            Cadastre, acompanhe e resolva chamados de suporte do Coordenação Regional
+            de Tecnologias Educacionais (CRTE) do Núcleo de Educação AMS com
+            autenticação segura via Clerk e dados centralizados no Supabase.
+          </p>
+          <SignedOut>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <SignUpButton fallbackRedirectUrl="/solicitacao" mode="modal">
+                <button className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">
+                  Começar agora
+                </button>
+              </SignUpButton>
+              <SignInButton fallbackRedirectUrl="/solicitacao" mode="modal">
+                <button className="rounded-md border border-slate-600 px-4 py-2 text-sm font-semibold transition hover:border-emerald-400 hover:text-emerald-200">
+                  Já tenho acesso
+                </button>
+              </SignInButton>
+            </div>
+          </SignedOut>
+          <SignedIn>
+            <div className="mt-8">
+              <Link
+                href="/solicitacao"
+                className="inline-flex items-center gap-2 rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              >
+                Abrir área autenticada
+              </Link>
+            </div>
+          </SignedIn>
+        </section>
+
+        <section className="grid gap-6 md:grid-cols-3">
+          <div className="rounded-lg border border-white/10 bg-slate-900 p-6">
+            <h3 className="font-semibold text-emerald-200">Autenticação moderna</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Use o Clerk para login seguro com e-mail, senha forte e recuperação
+              automática sem lidar com senhas no backend.
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-slate-900 p-6">
+            <h3 className="font-semibold text-emerald-200">Dados centralizados</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Todos os chamados são persistidos no Supabase com auditoria e
+              políticas de acesso para a equipe do CRTE.
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-slate-900 p-6">
+            <h3 className="font-semibold text-emerald-200">Fluxo educacional</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Organize atendimentos pedagógicos, técnicos e logísticos em um só
+              lugar, com visão focada no Núcleo AMS.
+            </p>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-white/10 bg-slate-950/80 text-xs text-slate-500">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <span>© {new Date().getFullYear()} CRTE · Núcleo de Educação AMS</span>
+          <span>Desenvolvido em Next.js, Clerk e Supabase</span>
+        </div>
       </footer>
     </div>
   );

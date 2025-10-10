@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## CRTE Chamados
 
-## Getting Started
+Portal de registro e acompanhamento de chamados pedagógicos e tecnológicos do CRTE do Núcleo de Educação AMS. A autenticação é fornecida pelo [Clerk](https://clerk.com/) e o armazenamento de dados fica no [Supabase](https://supabase.com/).
 
-First, run the development server:
+## Pré-requisitos
+
+- Node.js 18 ou superior;
+- Conta no Clerk com uma aplicação criada;
+- Projeto Supabase com as tabelas provisionadas (ver `supabase/schema.sql`).
+
+## Configuração de variáveis de ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto com as chaves do Clerk e do Supabase:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+
+SUPABASE_URL="https://<sua-instancia>.supabase.co"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUx..."
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> O `SUPABASE_SERVICE_ROLE_KEY` deve ser mantido apenas no backend. Ele é usado em Server Actions para sincronizar perfis e criar chamados.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Defina também as URLs de redirecionamento no painel do Clerk:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Sign-in redirect**: `http://localhost:3000/dashboard`
+- **Sign-up redirect**: `http://localhost:3000/dashboard`
 
-## Learn More
+## Banco de dados
 
-To learn more about Next.js, take a look at the following resources:
+Execute o script `supabase/schema.sql` no seu projeto Supabase para criar tabelas, gatilhos e políticas RLS necessárias. Você pode usar o SQL Editor do Supabase:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sql
+-- copie o conteúdo de supabase/schema.sql e execute no painel SQL
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Desenvolvimento
 
-## Deploy on Vercel
+Instale as dependências e execute o projeto em modo desenvolvimento:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+O aplicativo estará disponível em [http://localhost:3000](http://localhost:3000).
+
+## Fluxo principal
+
+- Visitantes acessam a home (`/`) e realizam o cadastro/login com Clerk;
+- Usuários autenticados são direcionados ao painel `/dashboard`;
+- Ao acessar o painel, o perfil é sincronizado na tabela `profiles` do Supabase;
+- O formulário “Novo chamado” cria registros associados ao usuário na tabela `tickets`;
+- A lista “Seus chamados” recupera os chamados do usuário autenticado.
+
+## Deploy
+
+Para publicar o projeto, configure as mesmas variáveis de ambiente na plataforma escolhida (Vercel, Netlify etc.) e certifique-se de informar as URLs de redirecionamento públicas no painel do Clerk e nas configurações do Supabase (Allowed Origins).
