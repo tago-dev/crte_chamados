@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin-client";
 
-export type TicketStatus = "aberto" | "em_atendimento" | "resolvido";
+export type TicketStatus = "aberto" | "em_atendimento" | "aguardando_os" | "resolvido";
 
 export type TicketRecord = {
   id: string;
@@ -149,5 +149,33 @@ export const updateTicket = async ({ id, status, tecnico_responsavel }: UpdateTi
 
   if (error) {
     throw new Error(`Erro ao atualizar chamado: ${error.message}`);
+  }
+};
+
+export const getAllUsers = cache(async () => {
+  const supabase = getSupabaseAdminClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, is_admin, created_at, updated_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Não foi possível carregar os usuários do Supabase: ${error.message}`);
+  }
+
+  return (data ?? []) as ProfileRecord[];
+});
+
+export const updateUserRole = async (userId: string, isAdmin: boolean) => {
+  const supabase = getSupabaseAdminClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_admin: isAdmin })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`Erro ao atualizar papel do usuário: ${error.message}`);
   }
 };

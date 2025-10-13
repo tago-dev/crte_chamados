@@ -32,11 +32,16 @@ const SECTORS = [
     "EDUCAÇÃO ESPECIAL",
 ] as const;
 
-const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
-    { value: "aberto", label: "Aberto" },
-    { value: "em_atendimento", label: "Em atendimento" },
-    { value: "resolvido", label: "Resolvido" },
-];
+// Função auxiliar para converter status em texto legível
+function getStatusLabel(status: TicketStatus): string {
+    const statusMap: Record<TicketStatus, string> = {
+        "aberto": "Aberto",
+        "em_atendimento": "Em atendimento",
+        "aguardando_os": "Aguardando OS",
+        "resolvido": "Resolvido",
+    };
+    return statusMap[status] || status;
+}
 
 type SolicitationPageProps = {
     searchParams?: {
@@ -85,9 +90,6 @@ export default async function SolicitationPage({
 
         const setor = formData.get("setor");
         const description = formData.get("description");
-        const status = formData.get("status");
-        const solicitanteField = formData.get("solicitante");
-        const tecnicoField = formData.get("tecnico_responsavel");
 
         if (!setor || typeof setor !== "string" || setor.trim().length === 0) {
             throw new Error("Informe o setor responsável pelo chamado.");
@@ -97,27 +99,14 @@ export default async function SolicitationPage({
             throw new Error("Descreva a solicitação antes de enviar.");
         }
 
-        const normalizedStatus = STATUS_OPTIONS.some((option) => option.value === status)
-            ? (status as TicketStatus)
-            : "aberto";
-
-        const solicitante =
-            typeof solicitanteField === "string" && solicitanteField.trim().length > 0
-                ? solicitanteField.trim()
-                : defaultSolicitante;
-
-        const tecnico =
-            typeof tecnicoField === "string" && tecnicoField.trim().length > 0
-                ? tecnicoField.trim()
-                : null;
-
+        // Para clientes, sempre criar com status "aberto" e dados padrão
         await createTicket({
             owner_id: ownerId,
             setor: setor.trim(),
             description: description.trim(),
-            status: normalizedStatus,
-            solicitante,
-            tecnico_responsavel: tecnico,
+            status: "aberto",
+            solicitante: defaultSolicitante,
+            tecnico_responsavel: null,
         });
 
         revalidatePath("/solicitacao");
@@ -190,39 +179,6 @@ export default async function SolicitationPage({
                             />
                         </label>
 
-                        <label className="grid gap-2 text-sm">
-                            <span>Status</span>
-                            <select
-                                name="status"
-                                defaultValue="aberto"
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 focus:border-emerald-400 focus:outline-none"
-                            >
-                                {STATUS_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="grid gap-2 text-sm">
-                            <span>Solicitante</span>
-                            <input
-                                name="solicitante"
-                                defaultValue={defaultSolicitante}
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </label>
-
-                        <label className="grid gap-2 text-sm">
-                            <span>Técnico responsável</span>
-                            <input
-                                name="tecnico_responsavel"
-                                placeholder="Opcional"
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </label>
-
                         <div className="grid gap-4 sm:grid-cols-2">
                             <label className="grid gap-2 text-sm">
                                 <span>Data de abertura</span>
@@ -281,7 +237,7 @@ export default async function SolicitationPage({
                                                 Setor: {ticket.setor}
                                             </h3>
                                             <p>
-                                                Status: <span className="text-slate-100">{STATUS_OPTIONS.find((opt) => opt.value === ticket.status)?.label ?? ticket.status}</span>
+                                                Status: <span className="text-slate-100">{getStatusLabel(ticket.status)}</span>
                                             </p>
                                         </div>
                                         <div className="text-right text-xs text-slate-400">
