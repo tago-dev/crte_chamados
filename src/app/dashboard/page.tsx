@@ -181,12 +181,6 @@ export default async function DashboardPage() {
                                                 Email
                                             </th>
                                             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
-                                                CPF
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
-                                                RG
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
                                                 Cargo
                                             </th>
                                             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
@@ -205,15 +199,6 @@ export default async function DashboardPage() {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-slate-300">
                                                     {userItem.email || "Email não informado"}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-slate-300">
-                                                    {userItem.cpf ?
-                                                        userItem.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') :
-                                                        <span className="italic text-slate-500">Não informado</span>
-                                                    }
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-slate-300">
-                                                    {userItem.rg || <span className="italic text-slate-500">Não informado</span>}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <span
