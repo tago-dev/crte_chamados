@@ -129,6 +129,12 @@ export default async function DashboardPage() {
                                 {user.primaryEmailAddress?.emailAddress}
                             </p>
                         </div>
+                        <a
+                            href="/perfil"
+                            className="rounded-md bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700"
+                        >
+                            Meu Perfil
+                        </a>
                         <LogoutButton />
                     </div>
                 </div>

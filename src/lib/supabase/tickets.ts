@@ -419,3 +419,146 @@ const sendAssignmentEmail = async (data: AssignmentEmailData) => {
   //   throw new Error('Falha ao enviar email');
   // }
 };
+
+export type TechnicianStats = {
+  technicianName: string;
+  assignedTickets: number;
+  resolvedTickets: number;
+  inProgressTickets: number;
+  avgResolutionTime?: number; // em dias
+};
+
+export const getTechnicianStats = cache(async (technicianName: string): Promise<TechnicianStats> => {
+  const supabase = getSupabaseAdminClient();
+
+  // Buscar todos os chamados atribuídos ao técnico
+  const { data: assignedTickets, error: assignedError } = await supabase
+    .from("tickets")
+    .select("id, status, created_at")
+    .eq("tecnico_responsavel", technicianName);
+
+  if (assignedError) {
+    throw new Error(`Erro ao buscar chamados atribuídos: ${assignedError.message}`);
+  }
+
+  // Buscar chamados resolvidos pelo técnico
+  const { data: resolvedTickets, error: resolvedError } = await supabase
+    .from("tickets")
+    .select("id, created_at")
+    .eq("tecnico_responsavel", technicianName)
+    .eq("status", "resolvido");
+
+  if (resolvedError) {
+    throw new Error(`Erro ao buscar chamados resolvidos: ${resolvedError.message}`);
+  }
+
+  // Buscar chamados em andamento
+  const { data: inProgressTickets, error: inProgressError } = await supabase
+    .from("tickets")
+    .select("id")
+    .eq("tecnico_responsavel", technicianName)
+    .eq("status", "em_atendimento");
+
+  if (inProgressError) {
+    throw new Error(`Erro ao buscar chamados em andamento: ${inProgressError.message}`);
+  }
+
+  // Calcular tempo médio de resolução (exemplo simplificado)
+  let avgResolutionTime: number | undefined;
+  if (resolvedTickets && resolvedTickets.length > 0) {
+    const totalDays = resolvedTickets.reduce((acc, ticket) => {
+      const createdDate = new Date(ticket.created_at);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return acc + diffDays;
+    }, 0);
+    avgResolutionTime = Math.round(totalDays / resolvedTickets.length);
+  }
+
+  return {
+    technicianName,
+    assignedTickets: assignedTickets?.length || 0,
+    resolvedTickets: resolvedTickets?.length || 0,
+    inProgressTickets: inProgressTickets?.length || 0,
+    avgResolutionTime,
+  };
+});
+
+export const getAllTechniciansStats = cache(async (): Promise<TechnicianStats[]> => {
+  const supabase = getSupabaseAdminClient();
+
+  // Buscar todos os técnicos únicos
+  const { data: technicians, error } = await supabase
+    .from("tickets")
+    .select("tecnico_responsavel")
+    .not("tecnico_responsavel", "is", null);
+
+  if (error) {
+    throw new Error(`Erro ao buscar técnicos: ${error.message}`);
+  }
+
+  // Obter técnicos únicos
+  const uniqueTechnicians = [...new Set(technicians?.map(t => t.tecnico_responsavel).filter(Boolean) || [])];
+
+  // Buscar estatísticas para cada técnico
+  const statsPromises = uniqueTechnicians.map(technicianName => 
+    getTechnicianStats(technicianName)
+  );
+
+  return await Promise.all(statsPromises);
+});
+
+export type MonthlyStats = {
+  month: string;
+  year: number;
+  resolved: number;
+  assigned: number;
+};
+
+export const getMonthlyStatsForTechnician = cache(async (technicianName: string): Promise<MonthlyStats[]> => {
+  const supabase = getSupabaseAdminClient();
+
+  // Buscar chamados dos últimos 6 meses
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const { data: tickets, error } = await supabase
+    .from("tickets")
+    .select("created_at, status, tecnico_responsavel")
+    .eq("tecnico_responsavel", technicianName)
+    .gte("created_at", sixMonthsAgo.toISOString());
+
+  if (error) {
+    throw new Error(`Erro ao buscar histórico de chamados: ${error.message}`);
+  }
+
+  // Agrupar por mês
+  const monthlyData: Record<string, MonthlyStats> = {};
+
+  tickets?.forEach(ticket => {
+    const date = new Date(ticket.created_at);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthName = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = {
+        month: monthName,
+        year: date.getFullYear(),
+        resolved: 0,
+        assigned: 0,
+      };
+    }
+
+    monthlyData[monthKey].assigned++;
+    if (ticket.status === 'resolvido') {
+      monthlyData[monthKey].resolved++;
+    }
+  });
+
+  // Converter para array e ordenar por data
+  return Object.values(monthlyData).sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    return a.month.localeCompare(b.month);
+  });
+});
