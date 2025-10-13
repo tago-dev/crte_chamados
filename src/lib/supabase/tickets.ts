@@ -12,6 +12,7 @@ export type TicketRecord = {
   status: TicketStatus;
   solicitante: string;
   tecnico_responsavel: string | null;
+  os_celepar: string | null;
   created_at: string;
 };
 
@@ -67,7 +68,7 @@ export const getTicketsForUser = cache(async (ownerId: string) => {
   const { data, error } = await supabase
     .from("tickets")
     .select(
-      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, created_at"
+      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, os_celepar, created_at"
     )
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
@@ -76,7 +77,7 @@ export const getTicketsForUser = cache(async (ownerId: string) => {
     throw new Error(`Não foi possível carregar os chamados do Supabase: ${error.message}`);
   }
 
-  return (data ?? []) as TicketRecord[];
+  return data as TicketRecord[];
 });
 
 export const getAllTickets = cache(async () => {
@@ -85,7 +86,7 @@ export const getAllTickets = cache(async () => {
   const { data, error } = await supabase
     .from("tickets")
     .select(
-      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, created_at"
+      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, os_celepar, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -93,7 +94,7 @@ export const getAllTickets = cache(async () => {
     throw new Error(`Não foi possível carregar os chamados do Supabase: ${error.message}`);
   }
 
-  return (data ?? []) as TicketRecord[];
+  return data as TicketRecord[];
 });
 
 export const createTicket = async (
@@ -104,7 +105,7 @@ export const createTicket = async (
 ) => {
   const supabase = getSupabaseAdminClient();
 
-  const validStatuses: TicketStatus[] = ["aberto", "em_atendimento", "resolvido", "cancelado"];
+  const validStatuses: TicketStatus[] = ["aberto", "em_atendimento", "aguardando_os", "resolvido", "cancelado"];
   const safeStatus = validStatuses.includes(ticket.status) ? ticket.status : "aberto";
 
   const { error } = await supabase.from("tickets").insert({
@@ -114,6 +115,7 @@ export const createTicket = async (
     status: safeStatus,
     solicitante: ticket.solicitante,
     tecnico_responsavel: ticket.tecnico_responsavel,
+    os_celepar: null,
   });
 
   if (error) {
@@ -125,20 +127,25 @@ type UpdateTicketParams = {
   id: string;
   status?: TicketStatus;
   tecnico_responsavel?: string | null;
+  os_celepar?: string | null;
 };
 
-export const updateTicket = async ({ id, status, tecnico_responsavel }: UpdateTicketParams) => {
+export const updateTicket = async ({ id, status, tecnico_responsavel, os_celepar }: UpdateTicketParams) => {
   const supabase = getSupabaseAdminClient();
 
-  const updates: Partial<Pick<TicketRecord, "status" | "tecnico_responsavel">> = {};
+  const updates: Partial<Pick<TicketRecord, "status" | "tecnico_responsavel" | "os_celepar">> = {};
 
   if (typeof status !== "undefined") {
-    const validStatuses: TicketStatus[] = ["aberto", "em_atendimento", "resolvido", "cancelado"];
+    const validStatuses: TicketStatus[] = ["aberto", "em_atendimento", "aguardando_os", "resolvido", "cancelado"];
     updates.status = validStatuses.includes(status) ? status : "aberto";
   }
 
   if (typeof tecnico_responsavel !== "undefined") {
     updates.tecnico_responsavel = tecnico_responsavel ?? null;
+  }
+
+  if (typeof os_celepar !== "undefined") {
+    updates.os_celepar = os_celepar ?? null;
   }
 
   if (Object.keys(updates).length === 0) {

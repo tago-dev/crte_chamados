@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TicketRecord, TicketStatus } from "@/lib/supabase/tickets";
 import { CancelTicketButton } from "./cancel-ticket-button";
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
     { value: "aberto", label: "Aberto" },
     { value: "em_atendimento", label: "Em atendimento" },
+    { value: "aguardando_os", label: "Aguardando OS" },
     { value: "resolvido", label: "Resolvido" },
     { value: "cancelado", label: "Cancelado" },
 ];
@@ -21,6 +22,14 @@ type TicketModalProps = {
 
 export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: TicketModalProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState<TicketStatus>("aberto");
+
+    // Atualiza o selectedStatus quando o ticket mudar
+    useEffect(() => {
+        if (ticket) {
+            setSelectedStatus(ticket.status);
+        }
+    }, [ticket]);
 
     if (!isOpen || !ticket) return null;
 
@@ -93,6 +102,16 @@ export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: Tic
                             {ticket.description}
                         </p>
                     </div>
+
+                    {/* Exibir OS CELEPAR se existir */}
+                    {ticket.os_celepar && (
+                        <div className="rounded-md border border-purple-500/20 bg-purple-500/10 p-3">
+                            <label className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">
+                                OS CELEPAR
+                            </label>
+                            <p className="mt-1 text-sm font-mono text-purple-100">{ticket.os_celepar}</p>
+                        </div>
+                    )}
                 </div>
 
                 <form action={handleSubmit} className="space-y-4">
@@ -105,7 +124,8 @@ export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: Tic
                             </label>
                             <select
                                 name="status"
-                                defaultValue={ticket.status}
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value as TicketStatus)}
                                 className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 focus:border-emerald-400 focus:outline-none"
                             >
                                 {STATUS_OPTIONS.map((option) => (
@@ -124,10 +144,34 @@ export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: Tic
                                 name="tecnico_responsavel"
                                 defaultValue={ticket.tecnico_responsavel ?? ""}
                                 placeholder="Informe um nome ou deixe em branco"
+                                disabled={selectedStatus === "aguardando_os"}
+                                className={`mt-1 w-full rounded-md border border-white/10 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none ${selectedStatus === "aguardando_os"
+                                        ? "bg-slate-800 cursor-not-allowed opacity-60"
+                                        : "bg-slate-950"
+                                    }`}
+                            />
+                            {selectedStatus === "aguardando_os" && (
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Campo bloqueado quando status é "Aguardando OS"
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Campo OS CELEPAR - aparece quando status é "aguardando_os" */}
+                    {selectedStatus === "aguardando_os" && (
+                        <div>
+                            <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                                OS CELEPAR
+                            </label>
+                            <input
+                                name="os_celepar"
+                                defaultValue={ticket.os_celepar ?? ""}
+                                placeholder="Digite o número da OS da CELEPAR"
                                 className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
                             />
                         </div>
-                    </div>
+                    )}
 
                     <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-between">
                         <div className="flex gap-3">

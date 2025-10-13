@@ -50,6 +50,7 @@ export default async function DashboardPage() {
         const ticketId = formData.get("ticket_id");
         const statusField = formData.get("status");
         const technicianField = formData.get("tecnico_responsavel");
+        const osCelepar = formData.get("os_celepar");
 
         if (!ticketId || typeof ticketId !== "string") {
             throw new Error("Chamado inválido para atualização.");
@@ -64,10 +65,18 @@ export default async function DashboardPage() {
             technicianValue = trimmed.length > 0 ? trimmed : null;
         }
 
+        let osCeleParValue: string | null | undefined = undefined;
+
+        if (typeof osCelepar === "string") {
+            const trimmed = osCelepar.trim();
+            osCeleParValue = trimmed.length > 0 ? trimmed : null;
+        }
+
         await updateTicket({
             id: ticketId,
             status: normalizedStatus,
             tecnico_responsavel: technicianValue,
+            os_celepar: osCeleParValue,
         });
 
         revalidatePath("/dashboard");

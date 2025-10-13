@@ -142,6 +142,9 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                         <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
                                     )}
                                 </th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
+                                    OS CELEPAR
+                                </th>
                                 <th
                                     className="cursor-pointer px-4 py-3 text-left text-sm font-semibold text-slate-200 hover:text-emerald-200"
                                     onClick={() => handleSort("created_at")}
@@ -187,6 +190,15 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(ticket.status)}`}>
                                                 {getStatusLabel(ticket.status)}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                            {ticket.status === "aguardando_os" && ticket.os_celepar ? (
+                                                <span className="rounded-md bg-purple-500/20 px-2 py-1 text-xs font-mono text-purple-200">
+                                                    {ticket.os_celepar}
+                                                </span>
+                                            ) : (
+                                                <span className="italic text-slate-500">-</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-400">
                                             {new Date(ticket.created_at).toLocaleDateString("pt-BR")}
