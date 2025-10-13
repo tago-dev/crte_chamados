@@ -7,10 +7,13 @@ export type TicketRecord = {
   id: string;
   ticket_number: number;
   owner_id: string;
+  titulo: string;
   setor: string;
   description: string;
   status: TicketStatus;
   solicitante: string;
+  cpf: string;
+  rg: string;
   tecnico_responsavel: string | null;
   os_celepar: string | null;
   created_at: string;
@@ -20,8 +23,6 @@ export type ProfileRecord = {
   id: string;
   email: string | null;
   full_name: string | null;
-  cpf: string | null;
-  rg: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -53,7 +54,7 @@ export const getProfileById = cache(async (id: string) => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, cpf, rg, is_admin, created_at, updated_at")
+    .select("id, email, full_name, is_admin, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -70,7 +71,7 @@ export const getTicketsForUser = cache(async (ownerId: string) => {
   const { data, error } = await supabase
     .from("tickets")
     .select(
-      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, os_celepar, created_at"
+      "id, ticket_number, owner_id, titulo, setor, description, status, solicitante, cpf, rg, tecnico_responsavel, os_celepar, created_at"
     )
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
@@ -88,7 +89,7 @@ export const getAllTickets = cache(async () => {
   const { data, error } = await supabase
     .from("tickets")
     .select(
-      "id, ticket_number, owner_id, setor, description, status, solicitante, tecnico_responsavel, os_celepar, created_at"
+      "id, ticket_number, owner_id, titulo, setor, description, status, solicitante, cpf, rg, tecnico_responsavel, os_celepar, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -102,7 +103,7 @@ export const getAllTickets = cache(async () => {
 export const createTicket = async (
   ticket: Pick<
     TicketRecord,
-    "owner_id" | "setor" | "description" | "status" | "solicitante" | "tecnico_responsavel"
+    "owner_id" | "titulo" | "setor" | "description" | "status" | "solicitante" | "cpf" | "rg" | "tecnico_responsavel"
   >
 ) => {
   const supabase = getSupabaseAdminClient();
@@ -112,10 +113,13 @@ export const createTicket = async (
 
   const { error } = await supabase.from("tickets").insert({
     owner_id: ticket.owner_id,
+    titulo: ticket.titulo,
     setor: ticket.setor,
     description: ticket.description,
     status: safeStatus,
     solicitante: ticket.solicitante,
+    cpf: ticket.cpf,
+    rg: ticket.rg,
     tecnico_responsavel: ticket.tecnico_responsavel,
     os_celepar: null,
   });
@@ -166,7 +170,7 @@ export const getAllUsers = cache(async () => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, cpf, rg, is_admin, created_at, updated_at")
+    .select("id, email, full_name, is_admin, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -191,7 +195,7 @@ export const updateUserRole = async (userId: string, isAdmin: boolean) => {
 
 export const updateUserProfile = async (
   userId: string, 
-  profileData: Partial<Pick<ProfileRecord, "full_name" | "cpf" | "rg">>
+  profileData: Partial<Pick<ProfileRecord, "full_name">>
 ) => {
   const supabase = getSupabaseAdminClient();
 
@@ -214,9 +218,12 @@ export const cancelTicket = async (ticketId: string, adminName: string) => {
     .select(`
       id,
       ticket_number,
+      titulo,
       setor,
       description,
       solicitante,
+      cpf,
+      rg,
       status,
       owner_id
     `)
@@ -331,9 +338,12 @@ export const assignTicketToTechnician = async (ticketId: string, technicianName:
     .select(`
       id,
       ticket_number,
+      titulo,
       setor,
       description,
       solicitante,
+      cpf,
+      rg,
       status,
       owner_id,
       tecnico_responsavel

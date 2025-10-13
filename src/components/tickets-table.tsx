@@ -28,8 +28,11 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
     // Filter tickets based on search term
     const filteredTickets = tickets.filter(ticket =>
         ticket.ticket_number.toString().includes(searchTerm) ||
+        ticket.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.setor.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.solicitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.cpf.includes(searchTerm.replace(/\D/g, '')) ||
+        ticket.rg.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (ticket.tecnico_responsavel?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -89,7 +92,7 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                 <div className="flex-1 max-w-md">
                     <input
                         type="text"
-                        placeholder="Buscar por número, setor, solicitante, técnico ou descrição..."
+                        placeholder="Buscar por número, título, setor, solicitante, CPF, RG, técnico ou descrição..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
@@ -120,6 +123,15 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                 </th>
                                 <th
                                     className="cursor-pointer px-4 py-3 text-left text-sm font-semibold text-slate-200 hover:text-emerald-200"
+                                    onClick={() => handleSort("titulo")}
+                                >
+                                    Título
+                                    {sortField === "titulo" && (
+                                        <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                                    )}
+                                </th>
+                                <th
+                                    className="cursor-pointer px-4 py-3 text-left text-sm font-semibold text-slate-200 hover:text-emerald-200"
                                     onClick={() => handleSort("setor")}
                                 >
                                     Setor
@@ -128,7 +140,7 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                     )}
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
-                                    Solicitante
+                                    Solicitante/CPF
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
                                     Técnico
@@ -176,10 +188,23 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                             #{ticket.ticket_number}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
+                                            <div className="max-w-xs truncate" title={ticket.titulo}>
+                                                {ticket.titulo}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
                                             {ticket.setor}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
-                                            {ticket.solicitante}
+                                            <div>
+                                                <div>{ticket.solicitante}</div>
+                                                <div className="text-xs text-slate-500">
+                                                    CPF: {ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                                                </div>
+                                                <div className="text-xs text-slate-500">
+                                                    RG: {ticket.rg}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
                                             {ticket.tecnico_responsavel || (

@@ -13,7 +13,6 @@ import { LogoutButton } from "@/components/logout-button";
 import { ProfileStatsCard } from "@/components/profile-stats-card";
 import { TechniciansStatsTable } from "@/components/technicians-stats-table";
 import { MonthlyStatsChart } from "@/components/monthly-stats-chart";
-import { CPFInput } from "@/components/cpf-input";
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -50,25 +49,11 @@ export default async function ProfilePage() {
         "use server";
 
         const fullName = formData.get("full_name");
-        const cpf = formData.get("cpf");
-        const rg = formData.get("rg");
 
         const profileData: any = {};
 
         if (typeof fullName === "string" && fullName.trim()) {
             profileData.full_name = fullName.trim();
-        }
-
-        if (typeof cpf === "string" && cpf.trim()) {
-            // Remove formatação do CPF (apenas números)
-            const cleanCpf = cpf.replace(/\D/g, '');
-            if (cleanCpf.length === 11) {
-                profileData.cpf = cleanCpf;
-            }
-        }
-
-        if (typeof rg === "string" && rg.trim()) {
-            profileData.rg = rg.trim();
         }
 
         if (Object.keys(profileData).length > 0 && user?.id) {
@@ -137,30 +122,6 @@ export default async function ProfilePage() {
                                     type="text"
                                     defaultValue={profile?.full_name || ""}
                                     placeholder="Digite seu nome completo"
-                                    className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                    CPF
-                                </label>
-                                <CPFInput
-                                    name="cpf"
-                                    defaultValue={profile?.cpf ? profile.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : ""}
-                                    className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                    RG
-                                </label>
-                                <input
-                                    name="rg"
-                                    type="text"
-                                    defaultValue={profile?.rg || ""}
-                                    placeholder="Digite seu RG"
                                     className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
                                 />
                             </div>

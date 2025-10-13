@@ -6,7 +6,6 @@ import {
     ensureUserProfile,
     getProfileById,
     getTicketsForUser,
-    updateUserProfile,
     TicketStatus,
 } from "@/lib/supabase/tickets";
 import { LogoutButton } from "@/components/logout-button";
@@ -89,42 +88,18 @@ export default async function SolicitationPage({
     const today = new Date().toLocaleDateString("pt-BR");
     const success = searchParams?.created === "1";
 
-    async function handleUpdateProfile(formData: FormData) {
-        "use server";
-
-        const fullName = formData.get("full_name");
-        const cpf = formData.get("cpf");
-        const rg = formData.get("rg");
-
-        const profileData: any = {};
-
-        if (typeof fullName === "string" && fullName.trim()) {
-            profileData.full_name = fullName.trim();
-        }
-
-        if (typeof cpf === "string" && cpf.trim()) {
-            // Remove formatação do CPF (apenas números)
-            const cleanCpf = cpf.replace(/\D/g, '');
-            if (cleanCpf.length === 11) {
-                profileData.cpf = cleanCpf;
-            }
-        }
-
-        if (typeof rg === "string" && rg.trim()) {
-            profileData.rg = rg.trim();
-        }
-
-        if (Object.keys(profileData).length > 0 && user?.id) {
-            await updateUserProfile(user.id, profileData);
-            revalidatePath("/solicitacao");
-        }
-    }
-
     async function handleCreateTicket(formData: FormData) {
         "use server";
 
+        const titulo = formData.get("titulo");
         const setor = formData.get("setor");
         const description = formData.get("description");
+        const cpf = formData.get("cpf");
+        const rg = formData.get("rg");
+
+        if (!titulo || typeof titulo !== "string" || titulo.trim().length === 0) {
+            throw new Error("Informe o título do chamado.");
+        }
 
         if (!setor || typeof setor !== "string" || setor.trim().length === 0) {
             throw new Error("Informe o setor responsável pelo chamado.");
@@ -134,13 +109,30 @@ export default async function SolicitationPage({
             throw new Error("Descreva a solicitação antes de enviar.");
         }
 
+        if (!cpf || typeof cpf !== "string" || cpf.trim().length === 0) {
+            throw new Error("Informe o CPF do solicitante.");
+        }
+
+        if (!rg || typeof rg !== "string" || rg.trim().length === 0) {
+            throw new Error("Informe o RG do solicitante.");
+        }
+
+        // Limpar CPF (remover formatação)
+        const cleanCpf = cpf.replace(/\D/g, '');
+        if (cleanCpf.length !== 11) {
+            throw new Error("CPF deve ter 11 dígitos.");
+        }
+
         // Para clientes, sempre criar com status "aberto" e dados padrão
         await createTicket({
             owner_id: ownerId,
+            titulo: titulo.trim(),
             setor: setor.trim(),
             description: description.trim(),
             status: "aberto",
             solicitante: defaultSolicitante,
+            cpf: cleanCpf,
+            rg: rg.trim(),
             tecnico_responsavel: null,
         });
 
@@ -174,77 +166,6 @@ export default async function SolicitationPage({
                 <section className="rounded-xl border border-white/10 bg-slate-900 p-6 shadow-xl">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 className="text-lg font-semibold text-emerald-200">Dados Pessoais</h2>
-                            <p className="text-sm text-slate-400">
-                                Mantenha suas informações atualizadas.
-                            </p>
-                        </div>
-                    </div>
-
-                    <form action={handleUpdateProfile} className="mt-6 grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                Nome Completo
-                            </label>
-                            <input
-                                name="full_name"
-                                type="text"
-                                defaultValue={profile?.full_name || ""}
-                                placeholder="Digite seu nome completo"
-                                className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                CPF
-                            </label>
-                            <CPFInput
-                                name="cpf"
-                                defaultValue={profile?.cpf ? profile.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : ""}
-                                className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                RG
-                            </label>
-                            <input
-                                name="rg"
-                                type="text"
-                                defaultValue={profile?.rg || ""}
-                                placeholder="Digite seu RG"
-                                className="mt-1 w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={user.primaryEmailAddress?.emailAddress || ""}
-                                disabled
-                                className="mt-1 w-full rounded-md border border-white/10 bg-slate-800 px-3 py-2 text-slate-400 cursor-not-allowed"
-                            />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <button
-                                type="submit"
-                                className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
-                            >
-                                Salvar alterações
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <section className="rounded-xl border border-white/10 bg-slate-900 p-6 shadow-xl">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
                             <h2 className="text-lg font-semibold text-emerald-200">Novo chamado</h2>
                             <p className="text-sm text-slate-400">
                                 Preencha os campos abaixo para abrir um chamado junto ao CRTE.
@@ -258,6 +179,39 @@ export default async function SolicitationPage({
                     </div>
 
                     <form action={handleCreateTicket} className="mt-6 grid gap-4">
+                        <label className="grid gap-2 text-sm">
+                            <span>Título do chamado</span>
+                            <input
+                                name="titulo"
+                                type="text"
+                                placeholder="Digite um título para o chamado"
+                                required
+                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                            />
+                        </label>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm">
+                                <span>CPF do solicitante</span>
+                                <CPFInput
+                                    name="cpf"
+                                    placeholder="000.000.000-00"
+                                    className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                                />
+                            </label>
+
+                            <label className="grid gap-2 text-sm">
+                                <span>RG do solicitante</span>
+                                <input
+                                    name="rg"
+                                    type="text"
+                                    placeholder="Digite o RG"
+                                    required
+                                    className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                                />
+                            </label>
+                        </div>
+
                         <label className="grid gap-2 text-sm">
                             <span>Setor</span>
                             <select
@@ -343,11 +297,18 @@ export default async function SolicitationPage({
                                                 Chamado Nº {ticket.ticket_number}
                                             </p>
                                             <h3 className="text-base font-semibold text-slate-100">
-                                                Setor: {ticket.setor}
+                                                {ticket.titulo}
                                             </h3>
+                                            <p>
+                                                Setor: <span className="text-slate-100">{ticket.setor}</span>
+                                            </p>
                                             <p>
                                                 Status: <span className="text-slate-100">{getStatusLabel(ticket.status)}</span>
                                             </p>
+                                            <div className="text-xs text-slate-400">
+                                                <p>CPF: {ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
+                                                <p>RG: {ticket.rg}</p>
+                                            </div>
                                         </div>
                                         <div className="text-right text-xs text-slate-400">
                                             <p>Aberto em {new Date(ticket.created_at).toLocaleString("pt-BR")}</p>
