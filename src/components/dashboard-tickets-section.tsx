@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { TicketRecord, TicketStatus } from "@/lib/supabase/tickets";
+import { TicketRecord, TicketStatus, ProfileRecord } from "@/lib/supabase/tickets";
 import { TicketsTable } from "./tickets-table";
 import { TicketModal } from "./ticket-modal";
 
 type DashboardTicketsSectionProps = {
     tickets: TicketRecord[];
+    users: ProfileRecord[];
     onUpdateTicket: (formData: FormData) => Promise<void>;
     onCancelTicket: (ticketId: string) => Promise<void>;
     onAssignTicket: (ticketId: string) => Promise<void>;
@@ -24,6 +25,7 @@ const STATUS_FILTERS = [
 
 export function DashboardTicketsSection({
     tickets,
+    users,
     onUpdateTicket,
     onCancelTicket,
     onAssignTicket,
@@ -97,6 +99,7 @@ export function DashboardTicketsSection({
 
             <TicketModal
                 ticket={selectedTicket}
+                users={users}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onUpdate={onUpdateTicket}

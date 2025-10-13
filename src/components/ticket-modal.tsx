@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TicketRecord, TicketStatus } from "@/lib/supabase/tickets";
+import { TicketRecord, TicketStatus, ProfileRecord } from "@/lib/supabase/tickets";
 import { CancelTicketButton } from "./cancel-ticket-button";
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
@@ -14,13 +14,14 @@ const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
 
 type TicketModalProps = {
     ticket: TicketRecord | null;
+    users: ProfileRecord[];
     isOpen: boolean;
     onClose: () => void;
     onUpdate: (formData: FormData) => Promise<void>;
     onCancel: (ticketId: string) => Promise<void>;
 };
 
-export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: TicketModalProps) {
+export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel }: TicketModalProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<TicketStatus>("aberto");
 
@@ -140,16 +141,23 @@ export function TicketModal({ ticket, isOpen, onClose, onUpdate, onCancel }: Tic
                             <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                                 Técnico responsável
                             </label>
-                            <input
+                            <select
                                 name="tecnico_responsavel"
                                 defaultValue={ticket.tecnico_responsavel ?? ""}
-                                placeholder="Informe um nome ou deixe em branco"
                                 disabled={selectedStatus === "aguardando_os"}
-                                className={`mt-1 w-full rounded-md border border-white/10 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none ${selectedStatus === "aguardando_os"
-                                        ? "bg-slate-800 cursor-not-allowed opacity-60"
-                                        : "bg-slate-950"
+                                className={`mt-1 w-full rounded-md border border-white/10 px-3 py-2 text-slate-100 focus:border-emerald-400 focus:outline-none ${selectedStatus === "aguardando_os"
+                                    ? "bg-slate-800 cursor-not-allowed opacity-60"
+                                    : "bg-slate-950"
                                     }`}
-                            />
+                            >
+                                <option value="">Selecione um técnico</option>
+                                {users.map((user) => (
+                                    <option key={user.id} value={user.full_name || user.email || user.id}>
+                                        {user.full_name || user.email || user.id}
+                                        {user.is_admin && " (Admin)"}
+                                    </option>
+                                ))}
+                            </select>
                             {selectedStatus === "aguardando_os" && (
                                 <p className="mt-1 text-xs text-slate-400">
                                     Campo bloqueado quando status é "Aguardando OS"

@@ -243,6 +243,7 @@ export default async function DashboardPage() {
 
                 <DashboardTicketsSection
                     tickets={tickets}
+                    users={users}
                     onUpdateTicket={handleUpdateTicket}
                     onCancelTicket={handleCancelTicket}
                     onAssignTicket={handleAssignTicket}
