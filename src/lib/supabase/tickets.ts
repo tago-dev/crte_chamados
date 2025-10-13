@@ -20,6 +20,8 @@ export type ProfileRecord = {
   id: string;
   email: string | null;
   full_name: string | null;
+  cpf: string | null;
+  rg: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -51,7 +53,7 @@ export const getProfileById = cache(async (id: string) => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, is_admin, created_at, updated_at")
+    .select("id, email, full_name, cpf, rg, is_admin, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -164,7 +166,7 @@ export const getAllUsers = cache(async () => {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, is_admin, created_at, updated_at")
+    .select("id, email, full_name, cpf, rg, is_admin, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -184,6 +186,22 @@ export const updateUserRole = async (userId: string, isAdmin: boolean) => {
 
   if (error) {
     throw new Error(`Erro ao atualizar papel do usuário: ${error.message}`);
+  }
+};
+
+export const updateUserProfile = async (
+  userId: string, 
+  profileData: Partial<Pick<ProfileRecord, "full_name" | "cpf" | "rg">>
+) => {
+  const supabase = getSupabaseAdminClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(profileData)
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`Erro ao atualizar perfil do usuário: ${error.message}`);
   }
 };
 
