@@ -84,7 +84,7 @@ export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel
                         <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                             Título
                         </label>
-                        <p className="text-slate-100">{ticket.titulo}</p>
+                        <p className="text-slate-100">{ticket.titulo || "Sem título"}</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -107,13 +107,18 @@ export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel
                             <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                                 CPF
                             </label>
-                            <p className="text-slate-100">{ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
+                            <p className="text-slate-100">
+                                {ticket.cpf ? 
+                                    ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : 
+                                    <span className="italic text-slate-500">Não informado</span>
+                                }
+                            </p>
                         </div>
                         <div>
                             <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                                 RG
                             </label>
-                            <p className="text-slate-100">{ticket.rg}</p>
+                            <p className="text-slate-100">{ticket.rg || <span className="italic text-slate-500">Não informado</span>}</p>
                         </div>
                     </div>
 

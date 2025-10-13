@@ -7,13 +7,13 @@ export type TicketRecord = {
   id: string;
   ticket_number: number;
   owner_id: string;
-  titulo: string;
+  titulo: string | null;
   setor: string;
   description: string;
   status: TicketStatus;
   solicitante: string;
-  cpf: string;
-  rg: string;
+  cpf: string | null;
+  rg: string | null;
   tecnico_responsavel: string | null;
   os_celepar: string | null;
   created_at: string;
@@ -103,8 +103,12 @@ export const getAllTickets = cache(async () => {
 export const createTicket = async (
   ticket: Pick<
     TicketRecord,
-    "owner_id" | "titulo" | "setor" | "description" | "status" | "solicitante" | "cpf" | "rg" | "tecnico_responsavel"
-  >
+    "owner_id" | "setor" | "description" | "status" | "solicitante" | "tecnico_responsavel"
+  > & {
+    titulo?: string | null;
+    cpf?: string | null;
+    rg?: string | null;
+  }
 ) => {
   const supabase = getSupabaseAdminClient();
 
@@ -113,13 +117,13 @@ export const createTicket = async (
 
   const { error } = await supabase.from("tickets").insert({
     owner_id: ticket.owner_id,
-    titulo: ticket.titulo,
+    titulo: ticket.titulo || null,
     setor: ticket.setor,
     description: ticket.description,
     status: safeStatus,
     solicitante: ticket.solicitante,
-    cpf: ticket.cpf,
-    rg: ticket.rg,
+    cpf: ticket.cpf || null,
+    rg: ticket.rg || null,
     tecnico_responsavel: ticket.tecnico_responsavel,
     os_celepar: null,
   });

@@ -28,11 +28,11 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
     // Filter tickets based on search term
     const filteredTickets = tickets.filter(ticket =>
         ticket.ticket_number.toString().includes(searchTerm) ||
-        ticket.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (ticket.titulo?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         ticket.setor.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.solicitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.cpf.includes(searchTerm.replace(/\D/g, '')) ||
-        ticket.rg.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (ticket.cpf || "").includes(searchTerm.replace(/\D/g, '')) ||
+        (ticket.rg?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (ticket.tecnico_responsavel?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -188,8 +188,8 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                             #{ticket.ticket_number}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
-                                            <div className="max-w-xs truncate" title={ticket.titulo}>
-                                                {ticket.titulo}
+                                            <div className="max-w-xs truncate" title={ticket.titulo || "Sem título"}>
+                                                {ticket.titulo || <span className="italic text-slate-500">Sem título</span>}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
@@ -199,10 +199,13 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                             <div>
                                                 <div>{ticket.solicitante}</div>
                                                 <div className="text-xs text-slate-500">
-                                                    CPF: {ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                                                    CPF: {ticket.cpf ? 
+                                                        ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : 
+                                                        <span className="italic">Não informado</span>
+                                                    }
                                                 </div>
                                                 <div className="text-xs text-slate-500">
-                                                    RG: {ticket.rg}
+                                                    RG: {ticket.rg || <span className="italic">Não informado</span>}
                                                 </div>
                                             </div>
                                         </td>
