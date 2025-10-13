@@ -39,6 +39,7 @@ function getStatusLabel(status: TicketStatus): string {
         "em_atendimento": "Em atendimento",
         "aguardando_os": "Aguardando OS",
         "resolvido": "Resolvido",
+        "cancelado": "Cancelado",
     };
     return statusMap[status] || status;
 }

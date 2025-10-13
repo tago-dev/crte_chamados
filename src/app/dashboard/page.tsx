@@ -8,13 +8,16 @@ import {
     getProfileById,
     updateTicket,
     updateUserRole,
+    cancelTicket,
     TicketStatus,
 } from "@/lib/supabase/tickets";
+import { CancelTicketButton } from "@/components/cancel-ticket-button";
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
     { value: "aberto", label: "Aberto" },
     { value: "em_atendimento", label: "Em atendimento" },
     { value: "resolvido", label: "Resolvido" },
+    { value: "cancelado", label: "Cancelado" },
 ];
 
 export default async function DashboardPage() {
@@ -101,6 +104,16 @@ export default async function DashboardPage() {
         revalidatePath("/dashboard");
     }
 
+    async function handleCancelTicket(ticketId: string) {
+        "use server";
+
+        const adminName = user?.fullName ?? user?.username ?? "Administrador";
+
+        await cancelTicket(ticketId, adminName);
+
+        revalidatePath("/dashboard");
+    }
+
     return (
         <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
             <header className="border-b border-white/10 bg-slate-950/80 px-6 py-6">
@@ -176,8 +189,8 @@ export default async function DashboardPage() {
                                                 <td className="px-4 py-3">
                                                     <span
                                                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${userItem.is_admin
-                                                                ? "bg-emerald-500/20 text-emerald-200"
-                                                                : "bg-slate-700 text-slate-300"
+                                                            ? "bg-emerald-500/20 text-emerald-200"
+                                                            : "bg-slate-700 text-slate-300"
                                                             }`}
                                                     >
                                                         {userItem.is_admin ? "Administrador" : "Usuário"}
@@ -197,8 +210,8 @@ export default async function DashboardPage() {
                                                         <button
                                                             type="submit"
                                                             className={`rounded-md px-3 py-1 text-xs font-semibold transition ${userItem.is_admin
-                                                                    ? "bg-red-500/20 text-red-200 hover:bg-red-500/30"
-                                                                    : "bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+                                                                ? "bg-red-500/20 text-red-200 hover:bg-red-500/30"
+                                                                : "bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
                                                                 }`}
                                                         >
                                                             {userItem.is_admin ? "Remover admin" : "Tornar admin"}
@@ -259,7 +272,14 @@ export default async function DashboardPage() {
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2 text-xs text-slate-400">
-                                            <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-200">
+                                            <span className={`rounded-full px-3 py-1 text-slate-200 ${ticket.status === "cancelado"
+                                                    ? "bg-red-500/20 text-red-200"
+                                                    : ticket.status === "resolvido"
+                                                        ? "bg-emerald-500/20 text-emerald-200"
+                                                        : ticket.status === "em_atendimento"
+                                                            ? "bg-yellow-500/20 text-yellow-200"
+                                                            : "bg-slate-800"
+                                                }`}>
                                                 {statusLabel[ticket.status] ?? ticket.status}
                                             </span>
                                             <span>
@@ -305,12 +325,22 @@ export default async function DashboardPage() {
                                             />
                                         </label>
 
-                                        <button
-                                            type="submit"
-                                            className="justify-self-start rounded-md bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400"
-                                        >
-                                            Salvar alterações
-                                        </button>
+                                        <div className="flex gap-3">
+                                            <button
+                                                type="submit"
+                                                className="rounded-md bg-emerald-500 px-4 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400"
+                                            >
+                                                Salvar alterações
+                                            </button>
+
+                                            {ticket.status !== "cancelado" && (
+                                                <CancelTicketButton
+                                                    ticketId={ticket.id}
+                                                    ticketNumber={ticket.ticket_number}
+                                                    onCancel={handleCancelTicket}
+                                                />
+                                            )}
+                                        </div>
                                     </form>
                                 </article>
                             ))
