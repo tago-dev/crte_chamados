@@ -9,12 +9,15 @@ type DashboardTicketsSectionProps = {
     tickets: TicketRecord[];
     onUpdateTicket: (formData: FormData) => Promise<void>;
     onCancelTicket: (ticketId: string) => Promise<void>;
+    onAssignTicket: (ticketId: string) => Promise<void>;
+    currentUserName: string;
 };
 
 const STATUS_FILTERS = [
     { value: "all", label: "Todos", color: "bg-slate-500/20 text-slate-200" },
     { value: "aberto", label: "Abertos", color: "bg-blue-500/20 text-blue-200" },
     { value: "em_atendimento", label: "Em Atendimento", color: "bg-yellow-500/20 text-yellow-200" },
+    { value: "aguardando_os", label: "Aguardando OS", color: "bg-purple-500/20 text-purple-200" },
     { value: "resolvido", label: "Resolvidos", color: "bg-emerald-500/20 text-emerald-200" },
     { value: "cancelado", label: "Cancelados", color: "bg-red-500/20 text-red-200" },
 ];
@@ -22,7 +25,9 @@ const STATUS_FILTERS = [
 export function DashboardTicketsSection({
     tickets,
     onUpdateTicket,
-    onCancelTicket
+    onCancelTicket,
+    onAssignTicket,
+    currentUserName
 }: DashboardTicketsSectionProps) {
     const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,8 +75,8 @@ export function DashboardTicketsSection({
                             key={filter.value}
                             onClick={() => setStatusFilter(filter.value)}
                             className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${statusFilter === filter.value
-                                    ? filter.color + " ring-2 ring-white/20"
-                                    : "bg-slate-700/50 text-slate-400 hover:" + filter.color
+                                ? filter.color + " ring-2 ring-white/20"
+                                : "bg-slate-700/50 text-slate-400 hover:" + filter.color
                                 }`}
                         >
                             {filter.label}
@@ -85,6 +90,8 @@ export function DashboardTicketsSection({
                 <TicketsTable
                     tickets={filteredTickets}
                     onEditTicket={handleEditTicket}
+                    onAssignTicket={onAssignTicket}
+                    currentUserName={currentUserName}
                 />
             </section>
 

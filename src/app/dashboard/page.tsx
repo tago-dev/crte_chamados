@@ -9,6 +9,7 @@ import {
     updateTicket,
     updateUserRole,
     cancelTicket,
+    assignTicketToTechnician,
     TicketStatus,
 } from "@/lib/supabase/tickets";
 import { LogoutButton } from "@/components/logout-button";
@@ -95,6 +96,16 @@ export default async function DashboardPage() {
         const adminName = user?.fullName ?? user?.username ?? "Administrador";
 
         await cancelTicket(ticketId, adminName);
+
+        revalidatePath("/dashboard");
+    }
+
+    async function handleAssignTicket(ticketId: string) {
+        "use server";
+
+        const technicianName = user?.fullName ?? user?.username ?? "Técnico";
+
+        await assignTicketToTechnician(ticketId, technicianName);
 
         revalidatePath("/dashboard");
     }
@@ -219,6 +230,8 @@ export default async function DashboardPage() {
                     tickets={tickets}
                     onUpdateTicket={handleUpdateTicket}
                     onCancelTicket={handleCancelTicket}
+                    onAssignTicket={handleAssignTicket}
+                    currentUserName={user?.fullName ?? user?.username ?? "Técnico"}
                 />
             </main>
         </div>

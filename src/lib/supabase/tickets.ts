@@ -296,3 +296,126 @@ const sendCancellationEmail = async (data: CancellationEmailData) => {
   //   throw new Error('Falha ao enviar email');
   // }
 };
+
+export const assignTicketToTechnician = async (ticketId: string, technicianName: string) => {
+  const supabase = getSupabaseAdminClient();
+
+  // Primeiro, vamos buscar os detalhes do chamado para obter o email do usuário
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select(`
+      id,
+      ticket_number,
+      setor,
+      description,
+      solicitante,
+      status,
+      owner_id,
+      tecnico_responsavel
+    `)
+    .eq("id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    throw new Error(`Erro ao buscar dados do chamado: ${ticketError?.message || 'Chamado não encontrado'}`);
+  }
+
+  // Buscar dados do perfil do usuário
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", ticket.owner_id)
+    .single();
+
+  if (profileError) {
+    throw new Error(`Erro ao buscar dados do usuário: ${profileError.message}`);
+  }
+
+  // Verifica se o chamado já foi cancelado ou resolvido
+  if (ticket.status === "cancelado" || ticket.status === "resolvido") {
+    throw new Error("Este chamado não pode ser atribuído pois já foi cancelado ou resolvido.");
+  }
+
+  // Verifica se o chamado já está atribuído a outro técnico
+  if (ticket.tecnico_responsavel && ticket.tecnico_responsavel !== technicianName) {
+    throw new Error(`Este chamado já está atribuído a: ${ticket.tecnico_responsavel}`);
+  }
+
+  // Atualiza o chamado com o técnico responsável e status
+  const { error: updateError } = await supabase
+    .from("tickets")
+    .update({ 
+      tecnico_responsavel: technicianName,
+      status: "em_atendimento"
+    })
+    .eq("id", ticketId);
+
+  if (updateError) {
+    throw new Error(`Erro ao atribuir chamado: ${updateError.message}`);
+  }
+
+  // Envia email de notificação para o usuário
+  try {
+    await sendAssignmentEmail({
+      ticketNumber: ticket.ticket_number,
+      userEmail: profile?.email || '',
+      userName: profile?.full_name || ticket.solicitante,
+      setor: ticket.setor,
+      description: ticket.description,
+      technicianName
+    });
+  } catch (emailError) {
+    // Log do erro do email, mas não falha a operação de atribuição
+    console.error('Erro ao enviar email de atribuição:', emailError);
+  }
+};
+
+type AssignmentEmailData = {
+  ticketNumber: number;
+  userEmail: string;
+  userName: string;
+  setor: string;
+  description: string;
+  technicianName: string;
+};
+
+const sendAssignmentEmail = async (data: AssignmentEmailData) => {
+  const emailContent = {
+    to: data.userEmail,
+    subject: `Chamado #${data.ticketNumber} - Atribuído para atendimento`,
+    html: `
+      <h2>Chamado Atribuído</h2>
+      <p>Olá <strong>${data.userName}</strong>,</p>
+      <p>Informamos que o seu chamado foi atribuído para atendimento.</p>
+      
+      <h3>Detalhes do Chamado:</h3>
+      <ul>
+        <li><strong>Número:</strong> #${data.ticketNumber}</li>
+        <li><strong>Setor:</strong> ${data.setor}</li>
+        <li><strong>Descrição:</strong> ${data.description}</li>
+        <li><strong>Técnico responsável:</strong> ${data.technicianName}</li>
+        <li><strong>Status:</strong> Em atendimento</li>
+        <li><strong>Data de atribuição:</strong> ${new Date().toLocaleString('pt-BR')}</li>
+      </ul>
+      
+      <p>O técnico responsável entrará em contato em breve para dar andamento ao seu chamado.</p>
+      
+      <p>Atenciosamente,<br>
+      Equipe CRTE - Núcleo de Educação AMS</p>
+    `
+  };
+
+  // TODO: Integrar com serviço de email real
+  console.log('Email de atribuição a ser enviado:', emailContent);
+  
+  // Exemplo de como seria com um serviço real (comentado):
+  // const response = await fetch('/api/send-email', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(emailContent)
+  // });
+  // 
+  // if (!response.ok) {
+  //   throw new Error('Falha ao enviar email');
+  // }
+};

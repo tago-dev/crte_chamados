@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { TicketRecord } from "@/lib/supabase/tickets";
+import { AssignTicketButton } from "./assign-ticket-button";
 
 type TicketsTableProps = {
     tickets: TicketRecord[];
     onEditTicket: (ticket: TicketRecord) => void;
+    onAssignTicket: (ticketId: string) => Promise<void>;
+    currentUserName: string;
 };
 
-export function TicketsTable({ tickets, onEditTicket }: TicketsTableProps) {
+export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUserName }: TicketsTableProps) {
     const [sortField, setSortField] = useState<keyof TicketRecord>("created_at");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +56,8 @@ export function TicketsTable({ tickets, onEditTicket }: TicketsTableProps) {
                 return "bg-emerald-500/20 text-emerald-200";
             case "em_atendimento":
                 return "bg-yellow-500/20 text-yellow-200";
+            case "aguardando_os":
+                return "bg-purple-500/20 text-purple-200";
             default:
                 return "bg-slate-500/20 text-slate-200";
         }
@@ -62,6 +67,7 @@ export function TicketsTable({ tickets, onEditTicket }: TicketsTableProps) {
         const statusMap: Record<string, string> = {
             "aberto": "Aberto",
             "em_atendimento": "Em atendimento",
+            "aguardando_os": "Aguardando OS",
             "resolvido": "Resolvido",
             "cancelado": "Cancelado"
         };
@@ -151,40 +157,64 @@ export function TicketsTable({ tickets, onEditTicket }: TicketsTableProps) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/10">
-                            {sortedTickets.map((ticket) => (
-                                <tr key={ticket.id} className="hover:bg-slate-900/50">
-                                    <td className="px-4 py-3 text-sm font-medium text-slate-200">
-                                        #{ticket.ticket_number}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        {ticket.setor}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        {ticket.solicitante}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-300">
-                                        {ticket.tecnico_responsavel || (
-                                            <span className="italic text-slate-500">Não atribuído</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(ticket.status)}`}>
-                                            {getStatusLabel(ticket.status)}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400">
-                                        {new Date(ticket.created_at).toLocaleDateString("pt-BR")}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <button
-                                            onClick={() => onEditTicket(ticket)}
-                                            className="rounded-md bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
-                                        >
-                                            Editar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {sortedTickets.map((ticket) => {
+                                const isAssignedToCurrentUser = ticket.tecnico_responsavel === currentUserName;
+                                const canBeAssigned = !ticket.tecnico_responsavel &&
+                                    ticket.status !== "cancelado" &&
+                                    ticket.status !== "resolvido";
+
+                                return (
+                                    <tr
+                                        key={ticket.id}
+                                        className={`hover:bg-slate-900/50 ${isAssignedToCurrentUser ? 'bg-blue-500/5 border-l-2 border-blue-500/30' : ''
+                                            }`}
+                                    >
+                                        <td className="px-4 py-3 text-sm font-medium text-slate-200">
+                                            #{ticket.ticket_number}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                            {ticket.setor}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                            {ticket.solicitante}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                            {ticket.tecnico_responsavel || (
+                                                <span className="italic text-slate-500">Não atribuído</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(ticket.status)}`}>
+                                                {getStatusLabel(ticket.status)}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-400">
+                                            {new Date(ticket.created_at).toLocaleDateString("pt-BR")}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => onEditTicket(ticket)}
+                                                    className="rounded-md bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/30"
+                                                >
+                                                    Editar
+                                                </button>
+                                                {canBeAssigned && (
+                                                    <AssignTicketButton
+                                                        ticketId={ticket.id}
+                                                        onAssign={onAssignTicket}
+                                                    />
+                                                )}
+                                                {isAssignedToCurrentUser && ticket.status === "em_atendimento" && (
+                                                    <span className="rounded-md bg-yellow-500/20 px-3 py-1 text-xs font-semibold text-yellow-200">
+                                                        Atribuído a você
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
