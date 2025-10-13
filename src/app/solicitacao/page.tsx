@@ -8,6 +8,7 @@ import {
     getTicketsForUser,
     TicketStatus,
 } from "@/lib/supabase/tickets";
+import { LogoutButton } from "@/components/logout-button";
 
 const SECTORS = [
     "CHEFIA",
@@ -126,9 +127,12 @@ export default async function SolicitationPage({
                             Registrar chamado
                         </h1>
                     </div>
-                    <div className="text-sm text-slate-300 sm:text-right">
-                        <p>{defaultSolicitante}</p>
-                        <p className="text-xs text-slate-500">{user.primaryEmailAddress?.emailAddress}</p>
+                    <div className="flex items-center gap-4">
+                        <div className="text-sm text-slate-300 sm:text-right">
+                            <p>{defaultSolicitante}</p>
+                            <p className="text-xs text-slate-500">{user.primaryEmailAddress?.emailAddress}</p>
+                        </div>
+                        <LogoutButton />
                     </div>
                 </div>
             </header>

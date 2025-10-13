@@ -12,6 +12,7 @@ import {
     TicketStatus,
 } from "@/lib/supabase/tickets";
 import { CancelTicketButton } from "@/components/cancel-ticket-button";
+import { LogoutButton } from "@/components/logout-button";
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
     { value: "aberto", label: "Aberto" },
@@ -126,11 +127,14 @@ export default async function DashboardPage() {
                             Painel de Chamados
                         </h1>
                     </div>
-                    <div className="text-sm text-slate-300 md:text-right">
-                        <p>{user.fullName ?? user.username ?? "Usuário"}</p>
-                        <p className="text-xs text-slate-500">
-                            {user.primaryEmailAddress?.emailAddress}
-                        </p>
+                    <div className="flex items-center gap-4">
+                        <div className="text-sm text-slate-300 md:text-right">
+                            <p>{user.fullName ?? user.username ?? "Usuário"}</p>
+                            <p className="text-xs text-slate-500">
+                                {user.primaryEmailAddress?.emailAddress}
+                            </p>
+                        </div>
+                        <LogoutButton />
                     </div>
                 </div>
             </header>
@@ -273,12 +277,12 @@ export default async function DashboardPage() {
                                         </div>
                                         <div className="flex flex-col items-end gap-2 text-xs text-slate-400">
                                             <span className={`rounded-full px-3 py-1 text-slate-200 ${ticket.status === "cancelado"
-                                                    ? "bg-red-500/20 text-red-200"
-                                                    : ticket.status === "resolvido"
-                                                        ? "bg-emerald-500/20 text-emerald-200"
-                                                        : ticket.status === "em_atendimento"
-                                                            ? "bg-yellow-500/20 text-yellow-200"
-                                                            : "bg-slate-800"
+                                                ? "bg-red-500/20 text-red-200"
+                                                : ticket.status === "resolvido"
+                                                    ? "bg-emerald-500/20 text-emerald-200"
+                                                    : ticket.status === "em_atendimento"
+                                                        ? "bg-yellow-500/20 text-yellow-200"
+                                                        : "bg-slate-800"
                                                 }`}>
                                                 {statusLabel[ticket.status] ?? ticket.status}
                                             </span>
