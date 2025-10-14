@@ -32,6 +32,7 @@ const SECTORS = [
     "OUVIDORIA",
     "FORMADORES",
     "EDUCAÇÃO ESPECIAL",
+    "DIREITOS HUMANOS"
 ] as const;
 
 // Função auxiliar para converter status em texto legível
