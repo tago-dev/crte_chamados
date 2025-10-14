@@ -108,8 +108,8 @@ export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel
                                 CPF
                             </label>
                             <p className="text-slate-100">
-                                {ticket.cpf ? 
-                                    ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : 
+                                {ticket.cpf ?
+                                    ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') :
                                     <span className="italic text-slate-500">Não informado</span>
                                 }
                             </p>

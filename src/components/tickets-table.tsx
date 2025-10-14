@@ -199,8 +199,8 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                             <div>
                                                 <div>{ticket.solicitante}</div>
                                                 <div className="text-xs text-slate-500">
-                                                    CPF: {ticket.cpf ? 
-                                                        ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : 
+                                                    CPF: {ticket.cpf ?
+                                                        ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') :
                                                         <span className="italic">Não informado</span>
                                                     }
                                                 </div>
