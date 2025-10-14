@@ -4,6 +4,7 @@ import { useState } from "react";
 import { TicketRecord, TicketStatus, ProfileRecord } from "@/lib/supabase/tickets";
 import { TicketsTable } from "./tickets-table";
 import { TicketModal } from "./ticket-modal";
+import { ExportExcelButton } from "./export-excel-button";
 
 type DashboardTicketsSectionProps = {
     tickets: TicketRecord[];
@@ -68,6 +69,12 @@ export function DashboardTicketsSection({
                                 : `Total de ${tickets.length} chamado(s).`}
                         </p>
                     </div>
+
+                    <ExportExcelButton
+                        tickets={tickets}
+                        filteredTickets={filteredTickets}
+                        statusFilter={statusFilter}
+                    />
                 </header>
 
                 {/* Status Filter Buttons */}
