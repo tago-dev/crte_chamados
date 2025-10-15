@@ -222,7 +222,6 @@ export const updateUserProfile = async (
 export const cancelTicket = async (ticketId: string, adminName: string) => {
   const supabase = getSupabaseAdminClient();
 
-  // Primeiro, vamos buscar os detalhes do chamado para obter o email do usuário
   const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
     .select(`
@@ -244,7 +243,6 @@ export const cancelTicket = async (ticketId: string, adminName: string) => {
     throw new Error(`Erro ao buscar dados do chamado: ${ticketError?.message || 'Chamado não encontrado'}`);
   }
 
-  // Buscar dados do perfil do usuário
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("email, full_name")
@@ -255,12 +253,10 @@ export const cancelTicket = async (ticketId: string, adminName: string) => {
     throw new Error(`Erro ao buscar dados do usuário: ${profileError.message}`);
   }
 
-  // Verifica se o chamado já está cancelado
   if (ticket.status === "cancelado") {
     throw new Error("Este chamado já foi cancelado.");
   }
 
-  // Atualiza o status do chamado para cancelado
   const { error: updateError } = await supabase
     .from("tickets")
     .update({ status: "cancelado" })
@@ -270,7 +266,6 @@ export const cancelTicket = async (ticketId: string, adminName: string) => {
     throw new Error(`Erro ao cancelar chamado: ${updateError.message}`);
   }
 
-  // Envia email de notificação para o usuário
   try {
     await sendCancellationEmail({
       ticketNumber: ticket.ticket_number,
@@ -281,7 +276,6 @@ export const cancelTicket = async (ticketId: string, adminName: string) => {
       adminName
     });
   } catch (emailError) {
-    // Log do erro do email, mas não falha a operação de cancelamento
     console.error('Erro ao enviar email de cancelamento:', emailError);
   }
 };
@@ -296,9 +290,6 @@ type CancellationEmailData = {
 };
 
 const sendCancellationEmail = async (data: CancellationEmailData) => {
-  // Para este exemplo, vou implementar uma função básica que pode ser integrada
-  // com um serviço de email como SendGrid, Resend, ou outro provedor
-  // Por agora, vou apenas logar a informação que seria enviada
   
   const emailContent = {
     to: data.userEmail,
@@ -324,19 +315,7 @@ const sendCancellationEmail = async (data: CancellationEmailData) => {
     `
   };
 
-  // TODO: Integrar com serviço de email real
   console.log('Email de cancelamento a ser enviado:', emailContent);
-  
-  // Exemplo de como seria com um serviço real (comentado):
-  // const response = await fetch('/api/send-email', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(emailContent)
-  // });
-  // 
-  // if (!response.ok) {
-  //   throw new Error('Falha ao enviar email');
-  // }
 };
 
 export const assignTicketToTechnician = async (ticketId: string, technicianName: string) => {
@@ -376,17 +355,14 @@ export const assignTicketToTechnician = async (ticketId: string, technicianName:
     throw new Error(`Erro ao buscar dados do usuário: ${profileError.message}`);
   }
 
-  // Verifica se o chamado já foi cancelado ou resolvido
   if (ticket.status === "cancelado" || ticket.status === "resolvido") {
     throw new Error("Este chamado não pode ser atribuído pois já foi cancelado ou resolvido.");
   }
 
-  // Verifica se o chamado já está atribuído a outro técnico
   if (ticket.tecnico_responsavel && ticket.tecnico_responsavel !== technicianName) {
     throw new Error(`Este chamado já está atribuído a: ${ticket.tecnico_responsavel}`);
   }
 
-  // Atualiza o chamado com o técnico responsável e status
   const { error: updateError } = await supabase
     .from("tickets")
     .update({ 
@@ -399,7 +375,6 @@ export const assignTicketToTechnician = async (ticketId: string, technicianName:
     throw new Error(`Erro ao atribuir chamado: ${updateError.message}`);
   }
 
-  // Envia email de notificação para o usuário
   try {
     await sendAssignmentEmail({
       ticketNumber: ticket.ticket_number,
@@ -410,7 +385,6 @@ export const assignTicketToTechnician = async (ticketId: string, technicianName:
       technicianName
     });
   } catch (emailError) {
-    // Log do erro do email, mas não falha a operação de atribuição
     console.error('Erro ao enviar email de atribuição:', emailError);
   }
 };
@@ -450,19 +424,7 @@ const sendAssignmentEmail = async (data: AssignmentEmailData) => {
     `
   };
 
-  // TODO: Integrar com serviço de email real
   console.log('Email de atribuição a ser enviado:', emailContent);
-  
-  // Exemplo de como seria com um serviço real (comentado):
-  // const response = await fetch('/api/send-email', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(emailContent)
-  // });
-  // 
-  // if (!response.ok) {
-  //   throw new Error('Falha ao enviar email');
-  // }
 };
 
 export type TechnicianStats = {
@@ -486,7 +448,6 @@ export const getTechnicianStats = cache(async (technicianName: string): Promise<
     throw new Error(`Erro ao buscar chamados atribuídos: ${assignedError.message}`);
   }
 
-  // Buscar chamados resolvidos pelo técnico
   const { data: resolvedTickets, error: resolvedError } = await supabase
     .from("tickets")
     .select("id, created_at")
@@ -497,7 +458,6 @@ export const getTechnicianStats = cache(async (technicianName: string): Promise<
     throw new Error(`Erro ao buscar chamados resolvidos: ${resolvedError.message}`);
   }
 
-  // Buscar chamados em andamento
   const { data: inProgressTickets, error: inProgressError } = await supabase
     .from("tickets")
     .select("id")
@@ -533,7 +493,6 @@ export const getTechnicianStats = cache(async (technicianName: string): Promise<
 export const getAllTechniciansStats = cache(async (): Promise<TechnicianStats[]> => {
   const supabase = getSupabaseAdminClient();
 
-  // Buscar todos os técnicos únicos
   const { data: technicians, error } = await supabase
     .from("tickets")
     .select("tecnico_responsavel")
@@ -543,10 +502,8 @@ export const getAllTechniciansStats = cache(async (): Promise<TechnicianStats[]>
     throw new Error(`Erro ao buscar técnicos: ${error.message}`);
   }
 
-  // Obter técnicos únicos
   const uniqueTechnicians = [...new Set(technicians?.map(t => t.tecnico_responsavel).filter(Boolean) || [])];
 
-  // Buscar estatísticas para cada técnico
   const statsPromises = uniqueTechnicians.map(technicianName => 
     getTechnicianStats(technicianName)
   );
@@ -564,7 +521,6 @@ export type MonthlyStats = {
 export const getMonthlyStatsForTechnician = cache(async (technicianName: string): Promise<MonthlyStats[]> => {
   const supabase = getSupabaseAdminClient();
 
-  // Buscar chamados dos últimos 6 meses
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -578,7 +534,6 @@ export const getMonthlyStatsForTechnician = cache(async (technicianName: string)
     throw new Error(`Erro ao buscar histórico de chamados: ${error.message}`);
   }
 
-  // Agrupar por mês
   const monthlyData: Record<string, MonthlyStats> = {};
 
   tickets?.forEach(ticket => {
@@ -601,7 +556,6 @@ export const getMonthlyStatsForTechnician = cache(async (technicianName: string)
     }
   });
 
-  // Converter para array e ordenar por data
   return Object.values(monthlyData).sort((a, b) => {
     if (a.year !== b.year) return a.year - b.year;
     return a.month.localeCompare(b.month);
