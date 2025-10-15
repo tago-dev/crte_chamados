@@ -29,10 +29,8 @@ export function ExportExcelButton({
         setIsExporting(true);
 
         try {
-            // Determina quais tickets exportar
             const ticketsToExport = filteredTickets || tickets;
 
-            // Prepara os dados para exportação
             const data = ticketsToExport.map(ticket => ({
                 "Número do Chamado": ticket.ticket_number,
                 "Tipo": ticket.tipo === "pedagogico" ? "Pedagógico" : "Técnico",
@@ -57,7 +55,6 @@ export function ExportExcelButton({
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
 
-            // Define o nome da aba baseado no filtro
             const sheetName = statusFilter === "all"
                 ? "Todos os Chamados"
                 : `Chamados - ${STATUS_LABELS[statusFilter as keyof typeof STATUS_LABELS] || statusFilter}`;
@@ -82,12 +79,10 @@ export function ExportExcelButton({
             ];
             worksheet["!cols"] = columnWidths;
 
-            // Gera o nome do arquivo
             const currentDate = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
             const filterText = statusFilter === "all" ? "todos" : statusFilter.replace("_", "-");
             const fileName = `relatorio-chamados-${filterText}-${currentDate}.xlsx`;
 
-            // Faz o download
             XLSX.writeFile(workbook, fileName);
 
         } catch (error) {
