@@ -11,6 +11,31 @@ import {
 } from "@/lib/supabase/tickets";
 import { LogoutButton } from "@/components/logout-button";
 import { SolicitationForm } from "@/components/solicitation-form";
+import { CPFInput } from "@/components/cpf-input";
+
+const SECTORS = [
+    "CHEFIA",
+    "EDIFICAÇÕES",
+    "RECURSOS HUMANOS",
+    "NAS PONTUAL",
+    "NAS PATRIMÔNIO",
+    "TUTORIA",
+    "FINANCEIRO",
+    "EDUCAÇÃO PROFISSIONAL",
+    "NCPM",
+    "EJA",
+    "ESTRUTURA",
+    "CPADS",
+    "RH",
+    "PEDAGÓGICO",
+    "REDS",
+    "SERE",
+    "PROTOCOLO",
+    "OUVIDORIA",
+    "FORMADORES",
+    "EDUCAÇÃO ESPECIAL",
+    "DIREITOS HUMANOS"
+] as const;
 
 // Função auxiliar para converter status em texto legível
 function getStatusLabel(status: TicketStatus): string {
