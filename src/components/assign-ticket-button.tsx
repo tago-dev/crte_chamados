@@ -17,7 +17,6 @@ export function AssignTicketButton({ ticketId, onAssign, disabled = false }: Ass
             await onAssign(ticketId);
         } catch (error) {
             console.error('Erro ao atribuir chamado:', error);
-            // Aqui você poderia mostrar uma notificação de erro
         } finally {
             setIsAssigning(false);
         }
