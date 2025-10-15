@@ -27,6 +27,7 @@ const SECTORS = [
     "OUVIDORIA",
     "FORMADORES",
     "EDUCAÇÃO ESPECIAL",
+    "DIREITOS HUMANOS",
 ] as const;
 
 type SolicitationFormProps = {
