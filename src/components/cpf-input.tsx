@@ -18,10 +18,8 @@ export function CPFInput({ name, defaultValue = "", placeholder = "000.000.000-0
     }, [defaultValue]);
 
     const formatCPF = (cpf: string) => {
-        // Remove tudo que não é dígito
         const numbers = cpf.replace(/\D/g, '');
 
-        // Aplica a máscara
         if (numbers.length <= 11) {
             return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
         }
