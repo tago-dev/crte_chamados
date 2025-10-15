@@ -10,7 +10,8 @@ import {
     TicketType,
 } from "@/lib/supabase/tickets";
 import { LogoutButton } from "@/components/logout-button";
-import { SolicitationForm } from "@/components/solicitation-form";
+// Update the import path to the correct location and filename
+import { SolicitationForm } from "../../components/solicitation-form";
 import { CPFInput } from "@/components/cpf-input";
 
 const SECTORS = [
@@ -218,8 +219,8 @@ export default async function SolicitationPage({
                                                     {ticket.titulo || "Sem título"}
                                                 </h3>
                                                 <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${ticket.tipo === "pedagogico"
-                                                        ? "bg-emerald-500/20 text-emerald-200"
-                                                        : "bg-blue-500/20 text-blue-200"
+                                                    ? "bg-emerald-500/20 text-emerald-200"
+                                                    : "bg-blue-500/20 text-blue-200"
                                                     }`}>
                                                     {ticket.tipo === "pedagogico" ? "📚 Pedagógico" : "💻 Técnico"}
                                                 </span>
