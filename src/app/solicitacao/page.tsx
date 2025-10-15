@@ -7,32 +7,10 @@ import {
     getProfileById,
     getTicketsForUser,
     TicketStatus,
+    TicketType,
 } from "@/lib/supabase/tickets";
 import { LogoutButton } from "@/components/logout-button";
-import { CPFInput } from "@/components/cpf-input";
-
-const SECTORS = [
-    "CHEFIA",
-    "EDIFICAÇÕES",
-    "RECURSOS HUMANOS",
-    "NAS PONTUAL",
-    "NAS PATRIMÔNIO",
-    "TUTORIA",
-    "FINANCEIRO",
-    "EDUCAÇÃO PROFISSIONAL",
-    "NCPM",
-    "EJA",
-    "ESTRUTURA",
-    "CPADS",
-    "RH",
-    "PEDAGÓGICO",
-    "REDS",
-    "SERE",
-    "PROTOCOLO",
-    "OUVIDORIA",
-    "FORMADORES",
-    "EDUCAÇÃO ESPECIAL",
-] as const;
+import { SolicitationForm } from "@/components/solicitation-form";
 
 // Função auxiliar para converter status em texto legível
 function getStatusLabel(status: TicketStatus): string {
@@ -92,13 +70,19 @@ export default async function SolicitationPage({
         "use server";
 
         const titulo = formData.get("titulo");
+        const tipo = formData.get("tipo") as TicketType;
         const setor = formData.get("setor");
         const description = formData.get("description");
         const cpf = formData.get("cpf");
         const rg = formData.get("rg");
+        const ip_maquina = formData.get("ip_maquina");
 
         if (!titulo || typeof titulo !== "string" || titulo.trim().length === 0) {
             throw new Error("Informe o título do chamado.");
+        }
+
+        if (!tipo || !["pedagogico", "tecnico"].includes(tipo)) {
+            throw new Error("Tipo de solicitação é obrigatório");
         }
 
         if (!setor || typeof setor !== "string" || setor.trim().length === 0) {
@@ -109,30 +93,39 @@ export default async function SolicitationPage({
             throw new Error("Descreva a solicitação antes de enviar.");
         }
 
-        if (!cpf || typeof cpf !== "string" || cpf.trim().length === 0) {
-            throw new Error("Informe o CPF do solicitante.");
+        // Validações específicas por tipo
+        if (tipo === "pedagogico") {
+            if (!cpf || typeof cpf !== "string" || cpf.trim().length === 0) {
+                throw new Error("Informe o CPF do solicitante.");
+            }
+            if (!rg || typeof rg !== "string" || rg.trim().length === 0) {
+                throw new Error("Informe o RG do solicitante.");
+            }
+            // Limpar CPF (remover formatação)
+            const cleanCpf = cpf.replace(/\D/g, '');
+            if (cleanCpf.length !== 11) {
+                throw new Error("CPF deve ter 11 dígitos.");
+            }
         }
 
-        if (!rg || typeof rg !== "string" || rg.trim().length === 0) {
-            throw new Error("Informe o RG do solicitante.");
-        }
-
-        // Limpar CPF (remover formatação)
-        const cleanCpf = cpf.replace(/\D/g, '');
-        if (cleanCpf.length !== 11) {
-            throw new Error("CPF deve ter 11 dígitos.");
+        if (tipo === "tecnico") {
+            if (!ip_maquina || typeof ip_maquina !== "string" || ip_maquina.trim().length === 0) {
+                throw new Error("IP da máquina é obrigatório para solicitações técnicas");
+            }
         }
 
         // Para clientes, sempre criar com status "aberto" e dados padrão
         await createTicket({
             owner_id: ownerId,
             titulo: titulo.trim(),
+            tipo: tipo,
             setor: setor.trim(),
             description: description.trim(),
             status: "aberto",
             solicitante: defaultSolicitante,
-            cpf: cleanCpf,
-            rg: rg.trim(),
+            cpf: tipo === "pedagogico" ? (cpf as string).replace(/\D/g, '') : null,
+            rg: tipo === "pedagogico" ? (rg as string).trim() : null,
+            ip_maquina: tipo === "tecnico" ? (ip_maquina as string).trim() : null,
             tecnico_responsavel: null,
         });
 
@@ -163,112 +156,11 @@ export default async function SolicitationPage({
             </header>
 
             <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-10">
-                <section className="rounded-xl border border-white/10 bg-slate-900 p-6 shadow-xl">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-lg font-semibold text-emerald-200">Novo chamado</h2>
-                            <p className="text-sm text-slate-400">
-                                Preencha os campos abaixo para abrir um chamado junto ao CRTE.
-                            </p>
-                        </div>
-                        {success ? (
-                            <span className="rounded-md bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">
-                                Chamado registrado com sucesso!
-                            </span>
-                        ) : null}
-                    </div>
-
-                    <form action={handleCreateTicket} className="mt-6 grid gap-4">
-                        <label className="grid gap-2 text-sm">
-                            <span>Título do chamado</span>
-                            <input
-                                name="titulo"
-                                type="text"
-                                placeholder="Digite um título para o chamado"
-                                required
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </label>
-
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <label className="grid gap-2 text-sm">
-                                <span>CPF do solicitante</span>
-                                <CPFInput
-                                    name="cpf"
-                                    placeholder="000.000.000-00"
-                                    className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                                />
-                            </label>
-
-                            <label className="grid gap-2 text-sm">
-                                <span>RG do solicitante</span>
-                                <input
-                                    name="rg"
-                                    type="text"
-                                    placeholder="Digite o RG"
-                                    required
-                                    className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                                />
-                            </label>
-                        </div>
-
-                        <label className="grid gap-2 text-sm">
-                            <span>Setor</span>
-                            <select
-                                name="setor"
-                                required
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 focus:border-emerald-400 focus:outline-none"
-                                defaultValue=""
-                            >
-                                <option value="" disabled>
-                                    Selecione um setor
-                                </option>
-                                {SECTORS.map((sector) => (
-                                    <option key={sector} value={sector}>
-                                        {sector}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="grid gap-2 text-sm">
-                            <span>Descrição</span>
-                            <textarea
-                                name="description"
-                                placeholder="Detalhe a solicitação"
-                                rows={4}
-                                required
-                                className="rounded-md border border-white/10 bg-slate-950 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
-                            />
-                        </label>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <label className="grid gap-2 text-sm">
-                                <span>Data de abertura</span>
-                                <input
-                                    value={today}
-                                    readOnly
-                                    className="rounded-md border border-dashed border-white/10 bg-slate-900 px-4 py-2 text-slate-400"
-                                />
-                            </label>
-                            <label className="grid gap-2 text-sm">
-                                <span>Nº do chamado</span>
-                                <input
-                                    value="Gerado automaticamente"
-                                    readOnly
-                                    className="rounded-md border border-dashed border-white/10 bg-slate-900 px-4 py-2 text-slate-400"
-                                />
-                            </label>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="w-full rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
-                        >
-                            Enviar chamado
-                        </button>
-                    </form>
-                </section>
+                <SolicitationForm
+                    onSubmit={handleCreateTicket}
+                    success={success}
+                    today={today}
+                />
 
                 <section className="grid gap-4">
                     <header>
@@ -296,19 +188,32 @@ export default async function SolicitationPage({
                                             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                                                 Chamado Nº {ticket.ticket_number}
                                             </p>
-                                            <h3 className="text-base font-semibold text-slate-100">
-                                                {ticket.titulo || "Sem título"}
-                                            </h3>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-base font-semibold text-slate-100">
+                                                    {ticket.titulo || "Sem título"}
+                                                </h3>
+                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${ticket.tipo === "pedagogico"
+                                                        ? "bg-emerald-500/20 text-emerald-200"
+                                                        : "bg-blue-500/20 text-blue-200"
+                                                    }`}>
+                                                    {ticket.tipo === "pedagogico" ? "📚 Pedagógico" : "💻 Técnico"}
+                                                </span>
+                                            </div>
                                             <p>
                                                 Setor: <span className="text-slate-100">{ticket.setor}</span>
                                             </p>
                                             <p>
                                                 Status: <span className="text-slate-100">{getStatusLabel(ticket.status)}</span>
                                             </p>
-                                            {(ticket.cpf || ticket.rg) && (
+                                            {ticket.tipo === "pedagogico" && (ticket.cpf || ticket.rg) && (
                                                 <div className="text-xs text-slate-400">
                                                     {ticket.cpf && <p>CPF: {ticket.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>}
                                                     {ticket.rg && <p>RG: {ticket.rg}</p>}
+                                                </div>
+                                            )}
+                                            {ticket.tipo === "tecnico" && ticket.ip_maquina && (
+                                                <div className="text-xs text-slate-400">
+                                                    <p>IP da máquina: {ticket.ip_maquina}</p>
                                                 </div>
                                             )}
                                         </div>
