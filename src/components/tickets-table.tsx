@@ -33,6 +33,7 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
         ticket.solicitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (ticket.cpf || "").includes(searchTerm.replace(/\D/g, '')) ||
         (ticket.rg?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (ticket.ip_maquina?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (ticket.tecnico_responsavel?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -92,7 +93,7 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                 <div className="flex-1 max-w-md">
                     <input
                         type="text"
-                        placeholder="Buscar por número, título, setor, solicitante, CPF, RG, técnico ou descrição..."
+                        placeholder="Buscar por número, título, setor, solicitante, CPF, RG, IP, técnico ou descrição..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
@@ -141,6 +142,9 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
                                     Solicitante/CPF
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
+                                    IP
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-200">
                                     Técnico
@@ -208,6 +212,15 @@ export function TicketsTable({ tickets, onEditTicket, onAssignTicket, currentUse
                                                     RG: {ticket.rg || <span className="italic">Não informado</span>}
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-300">
+                                            {ticket.ip_maquina ? (
+                                                <span className="rounded-md bg-blue-500/20 px-2 py-1 text-xs font-mono text-blue-200">
+                                                    {ticket.ip_maquina}
+                                                </span>
+                                            ) : (
+                                                <span className="italic text-slate-500">Não informado</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-300">
                                             {ticket.tecnico_responsavel || (
