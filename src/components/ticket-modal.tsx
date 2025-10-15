@@ -102,7 +102,7 @@ export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
                             <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                                 CPF
@@ -119,6 +119,20 @@ export function TicketModal({ ticket, users, isOpen, onClose, onUpdate, onCancel
                                 RG
                             </label>
                             <p className="text-slate-100">{ticket.rg || <span className="italic text-slate-500">Não informado</span>}</p>
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                                IP da Máquina
+                            </label>
+                            <p className="text-slate-100">
+                                {ticket.ip_maquina ? (
+                                    <span className="rounded-md bg-blue-500/20 px-2 py-1 text-xs font-mono text-blue-200">
+                                        {ticket.ip_maquina}
+                                    </span>
+                                ) : (
+                                    <span className="italic text-slate-500">Não informado</span>
+                                )}
+                            </p>
                         </div>
                     </div>
 
