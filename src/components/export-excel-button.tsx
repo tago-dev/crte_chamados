@@ -35,11 +35,13 @@ export function ExportExcelButton({
             // Prepara os dados para exportação
             const data = ticketsToExport.map(ticket => ({
                 "Número do Chamado": ticket.ticket_number,
+                "Tipo": ticket.tipo === "pedagogico" ? "Pedagógico" : "Técnico",
                 "Título": ticket.titulo || "Sem título",
                 "Setor": ticket.setor,
                 "Solicitante": ticket.solicitante,
                 "CPF": ticket.cpf || "Não informado",
                 "RG": ticket.rg || "Não informado",
+                "IP da Máquina": ticket.ip_maquina || "Não informado",
                 "Descrição": ticket.description,
                 "Status": STATUS_LABELS[ticket.status] || ticket.status,
                 "Técnico Responsável": ticket.tecnico_responsavel || "Não atribuído",
@@ -51,9 +53,7 @@ export function ExportExcelButton({
                     hour: "2-digit",
                     minute: "2-digit"
                 })
-            }));
-
-            // Cria a planilha
+            }));            // Cria a planilha
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
 
@@ -67,11 +67,13 @@ export function ExportExcelButton({
             // Ajusta a largura das colunas
             const columnWidths = [
                 { wch: 15 }, // Número do Chamado
+                { wch: 12 }, // Tipo
                 { wch: 30 }, // Título
                 { wch: 20 }, // Setor
                 { wch: 25 }, // Solicitante
                 { wch: 15 }, // CPF
                 { wch: 15 }, // RG
+                { wch: 15 }, // IP da Máquina
                 { wch: 50 }, // Descrição
                 { wch: 15 }, // Status
                 { wch: 25 }, // Técnico Responsável

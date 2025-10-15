@@ -7,9 +7,10 @@ type CPFInputProps = {
     defaultValue?: string;
     placeholder?: string;
     className?: string;
+    required?: boolean;
 };
 
-export function CPFInput({ name, defaultValue = "", placeholder = "000.000.000-00", className }: CPFInputProps) {
+export function CPFInput({ name, defaultValue = "", placeholder = "000.000.000-00", className, required }: CPFInputProps) {
     const [value, setValue] = useState(defaultValue);
 
     useEffect(() => {
@@ -42,6 +43,7 @@ export function CPFInput({ name, defaultValue = "", placeholder = "000.000.000-0
             placeholder={placeholder}
             maxLength={14}
             className={className}
+            required={required}
         />
     );
 }
